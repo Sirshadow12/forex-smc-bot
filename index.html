@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XAUUSD SMC Dashboard</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101722;color:#eef3fa;font-family:Arial,sans-serif}
+header{padding:22px 16px;background:#182434;border-bottom:1px solid #29394d}
+h1{font-size:21px;margin:0 0 6px}
+small{color:#9eafc3}
+main{max-width:850px;margin:auto;padding:16px}
+.card{background:#182434;border:1px solid #29394d;border-radius:13px;padding:17px;margin-bottom:14px}
+.signal{text-align:center;padding:25px}
+.signal h2{font-size:34px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.value{font-size:20px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
+.muted{color:#9eafc3;font-size:13px}
+.good{color:#35d39a}.bad{color:#ff737d}.wait{color:#f4c66a}
+button{background:#263c55;color:white;border:0;padding:10px 15px;border-radius:8px}
+footer{text-align:center;color:#8191a5;padding:20px;font-size:12px}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>XAUUSD SMC Dashboard</h1>
+<small>Smart Money Concepts · Nigeria Time (WAT)</small>
+</header>
+<main>
+<div class="card signal">
+<div class="muted">FINAL TRADING SIGNAL</div>
+<h2 id="signal" class="wait">WAIT</h2>
+<div id="updated" class="muted">Waiting for bot data...</div>
+</div>
+
+<div class="grid">
+<div class="card"><div class="muted">4H DIRECTION</div><div class="value" id="direction">--</div><p id="reason" class="muted">--</p></div>
+<div class="card"><div class="muted">1H TREND</div><div class="value" id="trend">--</div><p id="event" class="muted">--</p></div>
+<div class="card"><div class="muted">5M ENTRY</div><div class="value" id="entry">--</div></div>
+<div class="card"><div class="muted">ATR</div><div class="value" id="atr">--</div></div>
+<div class="card"><div class="muted">STOP LOSS</div><div class="value" id="sl">--</div></div>
+<div class="card"><div class="muted">TAKE PROFIT</div><div class="value" id="tp">--</div></div>
+</div>
+
+<div class="card">
+<h3>Market Data Status</h3>
+<p>4H: <span id="data4">Waiting</span></p>
+<p>1H: <span id="data1">Waiting</span></p>
+<p>5M: <span id="data5">Waiting</span></p>
+</div>
+
+<div class="card">
+<h3>News Alerts</h3>
+<p id="news">News information will appear here when connected.</p>
+</div>
+
+<div style="text-align:center"><button onclick="loadData()">Refresh Dashboard</button></div>
+</main>
+<footer>SMC analysis is informational, not financial advice. Verify every setup before trading.</footer>
+
+<script>
+function show(id,value){
+ document.getElementById(id).textContent =
+ value === null || value === undefined || value === "" ? "--" : value;
+}
+async function loadData(){
+ try{
+  const response=await fetch("dashboard_state.json?t="+Date.now());
+  if(!response.ok) throw new Error("Dashboard data not published yet");
+  const d=await response.json();
+  const signal=d.signal || "WAIT";
+  show("signal",signal);
+  document.getElementById("signal").className =
+   signal==="BUY"?"good":signal==="SELL"?"bad":"wait";
+  show("updated","Last update: "+(d.updated_at || "--"));
+  show("direction",d.direction);
+  show("reason",d.reason);
+  show("trend",d.trend);
+  show("event",d.event);
+  show("entry",d.entry);
+  show("atr",d.atr);
+  show("sl",d.stop_loss);
+  show("tp",d.take_profit);
+  show("data4",d.data_4h);
+  show("data1",d.data_1h);
+  show("data5",d.data_5m);
+  show("news",d.news || "No recent news alert.");
+ }catch(e){
+  show("updated",e.message);
+ }
+}
+loadData();
+setInterval(loadData,60000);
+</script>
+</body>
+</html>
